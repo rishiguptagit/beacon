@@ -1,4 +1,5 @@
 import { sql } from '@vercel/postgres';
+import { Point } from 'geojson';
 
 export async function createUser({ email, fullName, passwordHash }: {
   email: string;

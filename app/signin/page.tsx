@@ -21,57 +21,47 @@ const NeuralBackground = () => {
   );
 };
 
-export default function Signup() {
+export default function Login() {
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (password !== confirmPassword) {
-      alert('Passwords do not match');
-      return;
-    }
-
-    setIsSubmitting(true);
+    setIsLoading(true);
     
     try {
-      const response = await fetch('/api/signup', {
+      const response = await fetch('/api/signin', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           email,
-          fullName: name,
           password,
         }),
       });
 
       const data = await response.json();
-      
+
       if (data.success) {
-        router.push('/signin'); // Redirect to login page
+        router.push('/personalize'); // Redirect to dashboard on success
       } else {
-        alert(data.error || 'Signup failed'); // Basic error handling
+        alert(data.error || 'Login failed');
       }
     } catch (error) {
-      console.error('Error:', error);
-      alert('Failed to create account');
+      console.error('Login error:', error);
+      alert('Login failed');
     } finally {
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 relative overflow-hidden">
       <NeuralBackground />
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto px-4 relative z-10">
         <div className="flex flex-col items-center justify-center min-h-screen">
           {/* Logo */}
           <Link href="/" className="mb-8 relative group">
@@ -97,7 +87,7 @@ export default function Signup() {
             </div>
           </Link>
 
-          {/* Signup Form */}
+          {/* Login Form */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -105,14 +95,14 @@ export default function Signup() {
           >
             <div className="backdrop-blur-xl bg-black/50 border border-gray-800 rounded-2xl p-8 shadow-2xl shadow-blue-500/10">
               <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-2xl blur-3xl -z-10" />
-              <div className="text-center space-y-3 mb-8">
+              <motion.div className="text-center space-y-3 mb-8">
                 <motion.h2 
                   className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-500"
                   initial={{ opacity: 0, y: -20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5 }}
                 >
-                  Join Beacon AI
+                  Welcome to Beacon AI
                 </motion.h2>
                 <motion.p
                   className="text-sm text-gray-400 max-w-sm mx-auto"
@@ -120,29 +110,29 @@ export default function Signup() {
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.2 }}
                 >
-                  Create your account to access AI-powered emergency response tools
+                  Your intelligent emergency response platform powered by advanced machine learning
                 </motion.p>
-              </div>
+                <div className="flex justify-center space-x-4 text-xs text-gray-500">
+                  <span className="flex items-center">
+                    <motion.span
+                      className="inline-block w-2 h-2 bg-blue-500 rounded-full mr-2"
+                      animate={{ scale: [1, 1.2, 1] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    />
+                    Real-time Analysis
+                  </span>
+                  <span className="flex items-center">
+                    <motion.span
+                      className="inline-block w-2 h-2 bg-purple-500 rounded-full mr-2"
+                      animate={{ scale: [1, 1.2, 1] }}
+                      transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
+                    />
+                    Predictive Alerts
+                  </span>
+                </div>
+              </motion.div>
 
               <form onSubmit={handleSubmit} className="space-y-6">
-                <div>
-                  <label 
-                    htmlFor="name" 
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                  >
-                    Full name
-                  </label>
-                  <input
-                    id="name"
-                    type="text"
-                    required
-                    className="w-full px-4 py-2 border border-gray-800 rounded-lg bg-black/50 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all backdrop-blur-sm"
-                    placeholder="John Doe"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                  />
-                </div>
-
                 <div>
                   <label 
                     htmlFor="email" 
@@ -179,41 +169,37 @@ export default function Signup() {
                   />
                 </div>
 
-                <div>
-                  <label 
-                    htmlFor="confirmPassword" 
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                  >
-                    Confirm password
-                  </label>
-                  <input
-                    id="confirmPassword"
-                    type="password"
-                    required
-                    className="w-full px-4 py-2 border border-gray-800 rounded-lg bg-black/50 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all backdrop-blur-sm"
-                    placeholder="••••••••"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                  />
-                </div>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <input
+                        id="remember-me"
+                        type="checkbox"
+                        className="h-4 w-4 text-blue-500 border-gray-700 bg-black/50 rounded focus:ring-offset-0 focus:ring-2 focus:ring-blue-500"
+                      />
+                      <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-300">
+                        Remember me
+                      </label>
+                    </div>
 
-                <div className="flex items-center">
-                  <input
-                    id="terms"
-                    type="checkbox"
-                    required
-                    className="h-4 w-4 text-blue-500 border-gray-700 bg-black/50 rounded focus:ring-offset-0 focus:ring-2 focus:ring-blue-500"
-                  />
-                  <label htmlFor="terms" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
-                    I agree to the{' '}
-                    <Link href="/terms" className="text-blue-500 hover:text-blue-600">
-                      Terms of Service
+                    <Link 
+                      href="/forgot-password"
+                      className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
+                    >
+                      Forgot password?
                     </Link>
-                    {' '}and{' '}
-                    <Link href="/privacy" className="text-blue-500 hover:text-blue-600">
-                      Privacy Policy
-                    </Link>
-                  </label>
+                  </div>
+                  
+                  <div className="text-xs text-gray-500 bg-blue-500/5 border border-blue-500/10 rounded-lg p-3">
+                    <div className="flex items-start space-x-2">
+                      <svg className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <p>
+                        Beacon AI uses advanced neural networks to analyze emergency patterns and provide real-time insights for faster response times.
+                      </p>
+                    </div>
+                  </div>
                 </div>
 
                 <motion.button
@@ -221,15 +207,15 @@ export default function Signup() {
                   className="relative w-full group overflow-hidden px-6 py-3 rounded-lg"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  disabled={isSubmitting}
+                  disabled={isLoading}
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-300 group-hover:scale-110" />
                   <div className="relative flex items-center justify-center space-x-2">
                     <span className="text-white font-medium">
-                      {isSubmitting ? 'Creating Account...' : 'Create Account'}
+                      {isLoading ? 'Authenticating...' : 'Sign in'}
                     </span>
                     <AnimatePresence mode="wait">
-                      {!isSubmitting && (
+                      {!isLoading && (
                         <motion.span
                           key="arrow"
                           initial={{ opacity: 0, x: -10 }}
@@ -240,7 +226,7 @@ export default function Signup() {
                           →
                         </motion.span>
                       )}
-                      {isSubmitting && (
+                      {isLoading && (
                         <motion.div
                           key="loader"
                           initial={{ opacity: 0 }}
@@ -255,25 +241,35 @@ export default function Signup() {
               </form>
             </div>
 
-            {/* Login link */}
+            {/* Sign up link */}
             <div className="mt-8 space-y-4">
-              <div className="text-xs text-gray-500 bg-blue-500/5 border border-blue-500/10 rounded-lg p-3">
-                <div className="flex items-start space-x-2">
-                  <svg className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <div className="flex items-center justify-center space-x-3 text-xs text-gray-500">
+                <span className="flex items-center space-x-1">
+                  <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  <p>
-                    By creating an account, you'll have access to AI-powered emergency response tools, real-time incident tracking, and predictive analytics.
-                  </p>
-                </div>
+                  <span>ML-Powered</span>
+                </span>
+                <span className="flex items-center space-x-1">
+                  <svg className="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  <span>Real-time</span>
+                </span>
+                <span className="flex items-center space-x-1">
+                  <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                  <span>Predictive</span>
+                </span>
               </div>
               <p className="text-center text-sm text-gray-400">
-                Already have an account?{' '}
+                Don't have an account?{' '}
                 <Link 
-                  href="/signin" 
+                  href="/signup" 
                   className="text-blue-400 hover:text-blue-300 transition-colors font-medium"
                 >
-                  Log in →
+                  Sign up →
                 </Link>
               </p>
             </div>

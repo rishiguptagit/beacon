@@ -1,126 +1,178 @@
 'use client';
-import { useEffect, useRef } from 'react';
-import mapboxgl from 'mapbox-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import Link from 'next/link';
 
-// Get your access token from Mapbox
-mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
-
-// Update type definitions after imports
-type DisasterFeature = {
-  geometry: {
-    coordinates: [number, number, number]
-  };
-  properties: {
-    mag: number;
-    place: string;
-    time: number;
-    title: string;
-    type: string;
-    url: string;
-  };
+// Neural network background animation component
+const NeuralBackground = () => {
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-blue-900/20" />
+      <svg className="absolute w-full h-full opacity-[0.02]">
+        <pattern id="neural-pattern" x="0" y="0" width="50" height="50" patternUnits="userSpaceOnUse">
+          <circle cx="25" cy="25" r="1" fill="currentColor" />
+          <line x1="25" y1="25" x2="50" y2="25" stroke="currentColor" strokeWidth="0.5" />
+          <line x1="25" y1="25" x2="25" y2="50" stroke="currentColor" strokeWidth="0.5" />
+        </pattern>
+        <rect x="0" y="0" width="100%" height="100%" fill="url(#neural-pattern)" />
+      </svg>
+    </div>
+  );
 };
 
-type EonetEvent = {
-  title: string;
-  geometry: [{
-    coordinates: [number, number];
-    date: string;
-  }];
-  categories: [{
-    title: string;
-  }];
-  sources: [{
-    url: string;
-  }];
+type UserPreferences = {
+  zip_code: string;
+  notification_preference: string;
+  alert_radius: number;
+  emergency_contacts: string;
+  special_needs: boolean;
+  special_needs_details: string;
+  updated_at: string;
 };
 
 export default function Dashboard() {
-  const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<mapboxgl.Map | null>(null);
-  const markersRef = useRef<mapboxgl.Marker[]>([]);
+  const [preferences, setPreferences] = useState<UserPreferences | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    if (!mapContainer.current) return;
-
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/streets-v12',
-      center: [-98.5795, 39.8283],
-      zoom: 3
-    });
-
-    const fetchEmergencies = async () => {
+    const fetchPreferences = async () => {
       try {
-        // Clear existing markers
-        markersRef.current.forEach(marker => marker.remove());
-        markersRef.current = [];
+        const response = await fetch('/api/personalize?email=user@example.com'); // TODO: Get from auth context
+        const data = await response.json();
 
-        // Fetch earthquakes
-        const earthquakeResponse = await fetch('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson');
-        const earthquakeData = await earthquakeResponse.json();
-
-        // Fetch NASA EONET events (fires, storms, etc.)
-        const eonetResponse = await fetch('https://eonet.gsfc.nasa.gov/api/v3/events');
-        const eonetData = await eonetResponse.json();
-
-        // Add earthquake markers
-        earthquakeData.features.forEach((quake: DisasterFeature) => {
-          const marker = new mapboxgl.Marker({ color: '#ff0000' })
-            .setLngLat([quake.geometry.coordinates[0], quake.geometry.coordinates[1]])
-            .setPopup(
-              new mapboxgl.Popup().setHTML(`
-                <div class="p-2 bg-gray-800 text-white rounded-lg shadow-lg">
-                  <h3 class="font-bold text-lg mb-2">Earthquake</h3>
-                  <p class="text-gray-300">Magnitude ${quake.properties.mag}</p>
-                  <p class="text-gray-300">${quake.properties.place}</p>
-                  <p class="text-gray-300">Time: ${new Date(quake.properties.time).toLocaleString()}</p>
-                </div>
-              `)
-            )
-            .addTo(map.current!);
-          markersRef.current.push(marker);
-        });
-
-        // Add EONET event markers
-        eonetData.events.forEach((event: EonetEvent) => {
-          const coordinates = event.geometry[0].coordinates;
-          const marker = new mapboxgl.Marker({ color: '#ff8c00' })
-            .setLngLat([coordinates[0], coordinates[1]])
-            .setPopup(
-              new mapboxgl.Popup().setHTML(`
-                <div class="p-2 bg-gray-800 text-white rounded-lg shadow-lg">
-                  <h3 class="font-bold text-lg mb-2">${event.title}</h3>
-                  <p class="text-gray-300">Type: ${event.categories[0].title}</p>
-                  <p class="text-gray-300">Date: ${new Date(event.geometry[0].date).toLocaleString()}</p>
-                  <a href="${event.sources[0].url}" target="_blank" class="text-blue-400 hover:text-blue-300">
-                  </a>
-                </div>
-              `)
-            )
-            .addTo(map.current!);
-          markersRef.current.push(marker);
-        });
-
+        if (data.success) {
+          setPreferences(data.preferences);
+        } else {
+          setError(data.error);
+        }
       } catch (error) {
-        console.error('Error fetching emergencies:', error);
+        console.error('Error fetching preferences:', error);
+        setError('Failed to load preferences');
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    fetchEmergencies();
-    // Refresh data every 5 minutes
-    const interval = setInterval(fetchEmergencies, 300000);
-
-    return () => {
-      clearInterval(interval);
-      markersRef.current.forEach(marker => marker.remove());
-      map.current?.remove();
-    };
+    fetchPreferences();
   }, []);
 
   return (
-    <div className="min-h-screen">
-      <div ref={mapContainer} className="w-full h-screen" />
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 relative overflow-hidden">
+      <NeuralBackground />
+
+      <div className="container mx-auto px-4 py-16 relative z-10">
+        <div className="max-w-4xl mx-auto">
+          {/* Header */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center mb-12"
+          >
+            <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-500 mb-4">
+              Welcome to Beacon.AI
+            </h1>
+            <p className="text-gray-400">
+              Your AI-powered emergency response dashboard
+            </p>
+          </motion.div>
+
+          {/* Main Content */}
+          <div className="grid md:grid-cols-2 gap-8">
+            {/* Preferences Card */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="backdrop-blur-xl bg-black/50 border border-gray-800 rounded-2xl p-8 shadow-2xl shadow-blue-500/10"
+            >
+              <h2 className="text-2xl font-bold text-white mb-6">Your Preferences</h2>
+              
+              {isLoading ? (
+                <div className="flex justify-center py-8">
+                  <div className="w-8 h-8 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
+                </div>
+              ) : error ? (
+                <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400">
+                  {error}
+                </div>
+              ) : preferences ? (
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm text-gray-400">Location</label>
+                    <p className="text-white">ZIP Code: {preferences.zip_code}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm text-gray-400">Notification Settings</label>
+                    <p className="text-white capitalize">{preferences.notification_preference}</p>
+                    <p className="text-gray-400">Alert Radius: {preferences.alert_radius} miles</p>
+                  </div>
+                  {preferences.emergency_contacts && (
+                    <div>
+                      <label className="text-sm text-gray-400">Emergency Contacts</label>
+                      <p className="text-white whitespace-pre-line">{preferences.emergency_contacts}</p>
+                    </div>
+                  )}
+                  {preferences.special_needs && (
+                    <div>
+                      <label className="text-sm text-gray-400">Special Assistance</label>
+                      <p className="text-white">{preferences.special_needs_details}</p>
+                    </div>
+                  )}
+                  <div className="pt-4">
+                    <Link href="/personalize">
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className="relative group overflow-hidden px-6 py-2 rounded-lg w-full"
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-300 group-hover:scale-110" />
+                        <span className="relative text-white font-medium">Update Preferences</span>
+                      </motion.button>
+                    </Link>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-gray-400 mb-4">No preferences found</p>
+                  <Link href="/personalize">
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="relative group overflow-hidden px-6 py-2 rounded-lg"
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-300 group-hover:scale-110" />
+                      <span className="relative text-white font-medium">Set Up Preferences</span>
+                    </motion.button>
+                  </Link>
+                </div>
+              )}
+            </motion.div>
+
+            {/* Quick Actions Card */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="backdrop-blur-xl bg-black/50 border border-gray-800 rounded-2xl p-8 shadow-2xl shadow-blue-500/10"
+            >
+              <h2 className="text-2xl font-bold text-white mb-6">Quick Actions</h2>
+              <div className="grid gap-4">
+                <button className="p-4 rounded-xl border border-gray-800 hover:border-blue-500 transition-colors text-left group">
+                  <h3 className="text-lg font-semibold text-white mb-1 group-hover:text-blue-400">Report Incident</h3>
+                  <p className="text-gray-400 text-sm">Submit a new incident report</p>
+                </button>
+                <button className="p-4 rounded-xl border border-gray-800 hover:border-blue-500 transition-colors text-left group">
+                  <h3 className="text-lg font-semibold text-white mb-1 group-hover:text-blue-400">Emergency Contacts</h3>
+                  <p className="text-gray-400 text-sm">Manage your emergency contacts</p>
+                </button>
+                <button className="p-4 rounded-xl border border-gray-800 hover:border-blue-500 transition-colors text-left group">
+                  <h3 className="text-lg font-semibold text-white mb-1 group-hover:text-blue-400">Notification Settings</h3>
+                  <p className="text-gray-400 text-sm">Update your alert preferences</p>
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

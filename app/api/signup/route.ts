@@ -18,7 +18,9 @@ export async function POST(request: Request) {
     console.log('Attempting to create user:', { email, fullName }); // Log attempt
 
     // Hash password
+    console.log('Hashing password...');
     const hashedPassword = await bcrypt.hash(password, 10);
+    console.log('Password hashed, length:', hashedPassword.length);
 
     // Insert user into database
     const result = await sql`
@@ -28,6 +30,7 @@ export async function POST(request: Request) {
     `;
 
     console.log('User created:', result.rows[0]); // Log success
+    console.log('Stored password hash:', result.rows[0].password_hash);
     return NextResponse.json({
       success: true,
       user: result.rows[0],

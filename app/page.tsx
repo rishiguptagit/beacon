@@ -1,7 +1,24 @@
 'use client';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+
+// Neural network background animation component
+const NeuralBackground = () => {
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-blue-900/20" />
+      <svg className="absolute w-full h-full opacity-[0.02]">
+        <pattern id="neural-pattern" x="0" y="0" width="50" height="50" patternUnits="userSpaceOnUse">
+          <circle cx="25" cy="25" r="1" fill="currentColor" />
+          <line x1="25" y1="25" x2="50" y2="25" stroke="currentColor" strokeWidth="0.5" />
+          <line x1="25" y1="25" x2="25" y2="50" stroke="currentColor" strokeWidth="0.5" />
+        </pattern>
+        <rect x="0" y="0" width="100%" height="100%" fill="url(#neural-pattern)" />
+      </svg>
+    </div>
+  );
+};
 
 export default function IntroPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -27,15 +44,35 @@ export default function IntroPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-white dark:bg-black">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 relative overflow-hidden">
+      <NeuralBackground />
       {/* Navigation Dashboard */}
-      <nav className="fixed top-0 left-0 right-0 bg-white dark:bg-black border-b border-gray-200 dark:border-gray-800 z-50">
+      <nav className="fixed top-0 left-0 right-0 backdrop-blur-xl bg-black/50 border-b border-gray-800 z-50">
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
-            <div className="text-2xl font-bold text-black dark:text-white">
-              Beacon<span className="text-blue-500">.</span>
-            </div>
+            <Link href="/" className="relative group">
+              <motion.div
+                className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg blur opacity-25 group-hover:opacity-75 transition duration-1000 group-hover:duration-200"
+                animate={{ 
+                  scale: [1, 1.02, 1],
+                  rotate: [0, 1, 0]
+                }}
+                transition={{ 
+                  duration: 4,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+              />
+              <div className="relative px-4 py-2 rounded-lg leading-none flex items-center">
+                <span className="flex items-center space-x-2">
+                  <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-500">
+                    Beacon<span className="text-blue-500">.</span>
+                  </span>
+                  <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400 text-sm ml-2">AI</span>
+                </span>
+              </div>
+            </Link>
 
             {/* Menu Button */}
             <button 
@@ -60,12 +97,11 @@ export default function IntroPage() {
             {isMenuOpen && (
               <div 
                 ref={menuRef}
-                className="absolute top-16 right-4 w-48 bg-white dark:bg-gray-900 rounded-md shadow-lg border border-gray-200 dark:border-gray-700"
+                className="absolute top-16 right-4 w-48 backdrop-blur-xl bg-black/50 rounded-lg shadow-lg border border-gray-800 shadow-blue-500/10"
               >
                 <div className="py-1">
-                  <a href="#" className="block px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800">About</a>
-                  <a href="#" className="block px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800">Features</a>
-                  <a href="#" className="block px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800">Contact</a>
+                  <a href="/" className="block px-4 py-2 text-gray-300 hover:bg-white/5 transition-colors">About</a>
+                  <a href="contact" className="block px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800">Contact</a>
                 </div>
               </div>
             )}
@@ -81,13 +117,12 @@ export default function IntroPage() {
           transition={{ duration: 0.8 }}
           className="text-center mb-16"
         >
-          <h1 className="text-6xl font-bold text-black dark:text-white mb-6">
-            Beacon
-            <span className="text-blue-500">.</span>
+          <h1 className="text-6xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-500 mb-6">
+            Beacon<span className="text-blue-500">.</span>AI
           </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed">
-            A Real-Time Incident Reporting and 
-            <span className="text-blue-500"> Coordination System</span>
+          <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
+            An AI-Powered Real-Time Incident Reporting and
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400"> Coordination System</span>
           </p>
         </motion.div>
 
@@ -119,7 +154,7 @@ export default function IntroPage() {
             <h2 className="text-3xl font-bold text-black dark:text-white text-center mb-12">Project Goals</h2>
             <div className="grid md:grid-cols-2 gap-8">
               <div className="space-y-8">
-                <div className="border border-gray-200 dark:border-gray-800 p-6 rounded-xl hover:border-blue-500 transition-colors">
+                <div className="backdrop-blur-xl bg-black/30 border border-gray-800 p-6 rounded-xl hover:border-blue-500 transition-colors shadow-lg shadow-blue-500/5 group hover:shadow-blue-500/10">
                   <h3 className="text-xl font-semibold text-black dark:text-white mb-3">
                     Real-Time Incident Reporting
                   </h3>
@@ -128,7 +163,7 @@ export default function IntroPage() {
                     multimedia attachments, and severity levels.
                   </p>
                 </div>
-                <div className="border border-gray-200 dark:border-gray-800 p-6 rounded-xl hover:border-blue-500 transition-colors">
+                <div className="backdrop-blur-xl bg-black/30 border border-gray-800 p-6 rounded-xl hover:border-blue-500 transition-colors shadow-lg shadow-blue-500/5 group hover:shadow-blue-500/10">
                   <h3 className="text-xl font-semibold text-black dark:text-white mb-3">
                     Distributed Data Aggregation
                   </h3>
@@ -139,7 +174,7 @@ export default function IntroPage() {
                 </div>
               </div>
               <div className="space-y-8">
-                <div className="border border-gray-200 dark:border-gray-800 p-6 rounded-xl hover:border-blue-500 transition-colors">
+                <div className="backdrop-blur-xl bg-black/30 border border-gray-800 p-6 rounded-xl hover:border-blue-500 transition-colors shadow-lg shadow-blue-500/5 group hover:shadow-blue-500/10">
                   <h3 className="text-xl font-semibold text-black dark:text-white mb-3">
                     Fault-Tolerant Notification System
                   </h3>
@@ -148,7 +183,7 @@ export default function IntroPage() {
                     reaches the right stakeholders, even during network partitions or node failures.
                   </p>
                 </div>
-                <div className="border border-gray-200 dark:border-gray-800 p-6 rounded-xl hover:border-blue-500 transition-colors">
+                <div className="backdrop-blur-xl bg-black/30 border border-gray-800 p-6 rounded-xl hover:border-blue-500 transition-colors shadow-lg shadow-blue-500/5 group hover:shadow-blue-500/10">
                   <h3 className="text-xl font-semibold text-black dark:text-white mb-3">
                     Scalable Architecture
                   </h3>
@@ -168,10 +203,26 @@ export default function IntroPage() {
             transition={{ delay: 0.6 }}
             className="text-center pt-12"
           >
-            <Link href="/login">
-              <button className="bg-blue-500 text-white px-8 py-4 rounded-full font-semibold hover:bg-blue-600 transition-colors text-lg">
-                Get Started →
-              </button>
+            <Link href="/signin">
+              <motion.button
+                className="relative group overflow-hidden px-8 py-4 rounded-lg"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-300 group-hover:scale-110" />
+                <div className="relative flex items-center justify-center space-x-2">
+                  <span className="text-white font-medium text-lg">
+                    Get Started
+                  </span>
+                  <motion.span
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="text-white"
+                  >
+                    →
+                  </motion.span>
+                </div>
+              </motion.button>
             </Link>
           </motion.div>
         </div>
