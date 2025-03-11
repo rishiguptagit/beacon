@@ -1,16 +1,15 @@
 import { sql } from '@vercel/postgres';
 import { Point } from 'geojson';
 
-export async function createUser({ email, fullName, passwordHash }: {
+export async function createUser({ email, zipCode }: {
   email: string;
-  fullName: string;
-  passwordHash: string;
+  zipCode: string;
 }) {
   try {
     const result = await sql`
-      INSERT INTO users (email, full_name, password_hash)
-      VALUES (${email}, ${fullName}, ${passwordHash})
-      RETURNING id, email, full_name;
+      INSERT INTO users (email, zip_code)
+      VALUES (${email}, ${zipCode})
+      RETURNING email, zip_code;
     `;
     return result.rows[0];
   } catch (error) {

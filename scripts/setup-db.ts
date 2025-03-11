@@ -7,6 +7,14 @@ config({ path: path.resolve(process.cwd(), '.env.local') });
 
 async function setupDatabase() {
   try {
+    console.log('Dropping and recreating users table...');
+    await sql`DROP TABLE IF EXISTS users CASCADE;`;
+    await sql`
+      CREATE TABLE users (
+        email VARCHAR(255) PRIMARY KEY,
+        zip_code VARCHAR(10) NOT NULL
+      );
+    `;
     console.log('Creating official_incidents table...');
     await sql`
       CREATE TABLE IF NOT EXISTS official_incidents (

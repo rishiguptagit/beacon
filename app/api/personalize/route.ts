@@ -3,14 +3,16 @@ import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
   try {
-    // Create table if it doesn't exist
+    // Drop existing table and create new one
+    await sql`DROP TABLE IF EXISTS user_preferences;`;
+    
     await sql`
-      CREATE TABLE IF NOT EXISTS user_preferences (
+      CREATE TABLE user_preferences (
         email VARCHAR(255) PRIMARY KEY,
         zip_code VARCHAR(10),
-        notification_preference VARCHAR(20),
-        alert_radius INTEGER,
-        emergency_contacts TEXT,
+        observation_frequency VARCHAR(20),
+        observation_types TEXT[],
+        alert_threshold VARCHAR(20),
         special_needs BOOLEAN,
         special_needs_details TEXT,
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
@@ -20,9 +22,9 @@ export async function POST(request: Request) {
     const {
       email,
       zipCode,
-      notificationPreference,
-      alertRadius,
-      emergencyContacts,
+      observationFrequency,
+      observationTypes,
+      alertThreshold,
       specialNeeds,
       specialNeedsDetails
     } = await request.json();
@@ -32,27 +34,27 @@ export async function POST(request: Request) {
       INSERT INTO user_preferences (
         email,
         zip_code,
-        notification_preference,
-        alert_radius,
-        emergency_contacts,
+        observation_frequency,
+        observation_types,
+        alert_threshold,
         special_needs,
         special_needs_details,
         updated_at
       ) VALUES (
         ${email},
         ${zipCode},
-        ${notificationPreference},
-        ${parseInt(alertRadius)},
-        ${emergencyContacts},
+        ${observationFrequency},
+        ${observationTypes},
+        ${alertThreshold},
         ${specialNeeds},
         ${specialNeedsDetails},
         CURRENT_TIMESTAMP
       )
       ON CONFLICT (email) DO UPDATE SET
         zip_code = EXCLUDED.zip_code,
-        notification_preference = EXCLUDED.notification_preference,
-        alert_radius = EXCLUDED.alert_radius,
-        emergency_contacts = EXCLUDED.emergency_contacts,
+        observation_frequency = EXCLUDED.observation_frequency,
+        observation_types = EXCLUDED.observation_types,
+        alert_threshold = EXCLUDED.alert_threshold,
         special_needs = EXCLUDED.special_needs,
         special_needs_details = EXCLUDED.special_needs_details,
         updated_at = CURRENT_TIMESTAMP
@@ -88,9 +90,9 @@ export async function GET(request: Request) {
     const result = await sql`
       SELECT 
         zip_code,
-        notification_preference,
-        alert_radius,
-        emergency_contacts,
+        observation_frequency,
+        observation_types,
+        alert_threshold,
         special_needs,
         special_needs_details,
         updated_at
